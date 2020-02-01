@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <style>
+  #map {
+        height: 400px;  /* The height is 400 pixels */
+        width: 100%;  /* The width is the width of the web page */
+       }
+  </style>
+  <script>
+  function cargarOyente()
+  {
+  document.getElementById("btn_cargar").onclick=function(){hacerPeticion(); }
+  }
+  function hacerPeticion()
+  {
+  var xhttp = new XMLHttpRequest();
+ // var ruta="https://datos.madrid.es/portal/site/egob/menuitem.ac61933d6ee3c31cae77ae7784f1a5a0/?vgnextoid=00149033f2201410VgnVCM100000171f5a0aRCRD&format=json&file=0&filename=201132-0-museos&mgmtid=118f2fdbecc63410VgnVCM1000000b205a0aRCRD&preview=full";
+	var ruta="museos.json";
+	
+	
+		xhttp.open("GET", ruta, true);
+		xhttp.send();
+		
+		xhttp.onreadystatechange = function() {
+		console.log(this.readyState);
+			if (this.readyState == 4 && this.status == 200) {
+			//Ya tengo la respuesta con el JSON y ya puedo tratar el JSON 
+			//y cargar el mapa
+			tratarJSON(this.responseText);
+			
+			}
+		};
+  }
+  function tratarJSON(texto_json)
+  {
+   
+		  var json=JSON.parse(texto_json);
+		  var lista_museos=json["@graph"];
+		  var lista_objetos_museo=new Array()	;
+		  for(i=0; i<lista_museos.length;i++)
+		  {
+		  
+		  var museo=lista_museos[i];
+		  var location=museo.location;
+		  if (location)
+		  {
+			  var lat=location.latitude;
+			  var lng=museo.location.longitude;
+		  }
+		  else
+		  {
+		  console.log("location no existente");
+		  }
+		  var nombre=museo.organization["organization-name"];
+		  var objeto_museo={latitud: lat, longitud: lng, nombre: nombre};
+		  lista_objetos_museo.push(objeto_museo);
+		  //javascript simple object notation
+		  mostrarMapa(lista_objetos_museo);
+		  }
+	}
+	function mostrarMapa(lista_objetos_museo)
+	{
+	console.log(lista_objetos_museo);
+	//key=AIzaSyA2nnTwxI_6v6FgZQ_HYALbkWsL3qhFjT4
+	var map;
+	map = new google.maps.Map(document.getElementById('map'), {
+	//40.416739, -3.703291
+          center: {lat: 40.416739, lng: -3.703291},
+          zoom: 8
+        });
+		
+	for (i=0; i<lista_objetos_museo.length; i++)
+			{
+			var obj_museo=lista_objetos_museo[i];
+			var punto_museo = {lat: obj_museo.latitud, lng:obj_museo.longitud};
+			
+		var marker = new google.maps.Marker({position: punto_museo, map: map, title:obj_museo.nombre});
+			}  
+	}
+  </script>
+  </head> 
+  <body onload="cargarOyente()">
+     <div id="map"></div>
+
+	
+	<button id="btn_cargar">Hacer petición</button>
+	
+
+   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA2nnTwxI_6v6FgZQ_HYALbkWsL3qhFjT4"
+    async defer></script>
+   
+  </body>
+</html>
